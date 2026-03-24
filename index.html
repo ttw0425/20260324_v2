@@ -55,4 +55,115 @@
             border: none;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.2s
+            transition: 0.2s;
+        }
+        .btn-next { background: #000; color: #fff; }
+        .btn-prev { background: rgba(0,0,0,0.05); color: #666; }
+
+        #loading { display: none; text-align: center; }
+        .preview-img { max-width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="mainCard">
+    <form id="ritualForm">
+        <div class="step" id="step1">
+            <h2>基本資料</h2>
+            <div class="form-group"><label>姓名</label><input type="text" name="userName" required></div>
+            <div class="form-group"><label>年齡</label><input type="number" name="userAge"></div>
+            <div class="form-group"><label>Email</label><input type="email" name="userEmail" required></div>
+            <div class="form-group"><label>職業</label><input type="text" name="userJob"></div>
+            <div class="form-group">
+                <label>最高學歷</label>
+                <select name="userEdu">
+                    <option>高中職</option><option>大學</option><option>碩士</option><option>博士</option><option>其他</option>
+                </select>
+            </div>
+            <div class="btn-group"><button type="button" class="btn-next" onclick="go(2)">下一步</button></div>
+        </div>
+
+        <div class="step" id="step2">
+            <h2>日常物件</h2>
+            <div class="form-group"><label>溫柔語氣物件</label><input type="text" name="gentleItem"></div>
+            <div class="form-group"><label>選擇原因</label><textarea name="gentleReason"></textarea></div>
+            <div class="form-group"><label>尖銳語氣物件</label><input type="text" name="sharpItem"></div>
+            <div class="form-group"><label>選擇原因</label><textarea name="sharpReason"></textarea></div>
+            <div class="form-group">
+                <label>照片上傳</label>
+                <input type="file" accept="image/*" onchange="preview(this, 'p1', 'i1')">
+                <img id="p1" class="preview-img">
+                <input type="hidden" name="img1" id="i1">
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn-prev" onclick="go(1)">回上頁</button>
+                <button type="button" class="btn-next" onclick="go(3)">下一步</button>
+            </div>
+        </div>
+
+        <div class="step" id="step3">
+            <h2>告別物件</h2>
+            <div class="form-group"><label>物件名稱</label><input type="text" name="farewellItem"></div>
+            <div class="form-group"><label>特徵/功能/時長</label><textarea name="itemDetail"></textarea></div>
+            <div class="form-group"><label>情感連結/猶豫原因</label><textarea name="memory"></textarea></div>
+            <div class="form-group">
+                <label>相對位置照片</label>
+                <input type="file" accept="image/*" onchange="preview(this, 'p2', 'i2')">
+                <img id="p2" class="preview-img">
+                <input type="hidden" name="img2" id="i2">
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn-prev" onclick="go(2)">回上頁</button>
+                <button type="button" class="btn-next" onclick="submitData()">完成儀式</button>
+            </div>
+        </div>
+    </form>
+
+    <div id="loading">正在傳送紀錄...</div>
+</div>
+
+<script>
+    // 這裡請換成你部署後的網址（必須是 /exec 結尾）
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby-你的ID/exec"; 
+
+    function go(n) {
+        document.querySelectorAll('.step').forEach(s => s.style.display = 'none');
+        document.getElementById('step' + n).style.display = 'block';
+    }
+
+    function preview(input, imgId, hiddenId) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById(imgId).src = e.target.result;
+            document.getElementById(imgId).style.display = 'block';
+            document.getElementById(hiddenId).value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function submitData() {
+        const form = document.getElementById('ritualForm');
+        const data = {};
+        new FormData(form).forEach((v, k) => data[k] = v);
+
+        document.getElementById('ritualForm').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+
+        try {
+            await fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(data)
+            });
+            document.getElementById('mainCard').innerHTML = "<h2>儀式完成</h2><p style='text-align:center'>您的紀錄已成功收藏。</p>";
+        } catch (e) {
+            alert("錯誤：" + e);
+            document.getElementById('ritualForm').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
