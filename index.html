@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>物件告別儀式</title>
     <style>
-        /* 配色參照圖片：粉藍到粉紫的漸層 */
         body {
             margin: 0;
             padding: 0;
@@ -14,29 +13,30 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: sans-serif;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
         }
 
-        /* 白色毛玻璃卡片 */
         .container {
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
             background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 30px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             border: 1px solid rgba(255,255,255,0.3);
         }
 
-        /* 初始狀態：除了第一頁，其他都隱藏 */
         .step { display: none; }
-        .step#step1 { display: block; } /* 強制顯示第一頁 */
+        .step.active { display: block; animation: fadeIn 0.4s; }
 
-        h2 { text-align: center; color: #444; margin-bottom: 20px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        h2 { text-align: center; color: #444; margin-bottom: 20px; font-weight: 500; }
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.8rem; color: #666; margin-bottom: 5px; }
+        label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 5px; font-weight: bold; }
+        
         input, select, textarea {
             width: 100%;
             padding: 12px;
@@ -45,105 +45,159 @@
             background: rgba(255,255,255,0.8);
             box-sizing: border-box;
             font-size: 1rem;
+            outline: none;
         }
 
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        input:focus, textarea:focus { border-color: #8ec5fc; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
         button {
             flex: 1;
             padding: 15px;
-            border-radius: 15px;
+            border-radius: 20px;
             border: none;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.2s;
+            font-size: 1rem;
+            transition: 0.3s;
         }
         .btn-next { background: #000; color: #fff; }
         .btn-prev { background: rgba(0,0,0,0.05); color: #666; }
 
-        #loading { display: none; text-align: center; }
-        .preview-img { max-width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
+        .upload-area {
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px dashed #ccc;
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .preview-img { max-width: 100%; border-radius: 8px; margin-top: 8px; display: none; }
+        #loading { display: none; text-align: center; padding: 20px; font-weight: bold; color: #666; }
     </style>
 </head>
 <body>
 
 <div class="container" id="mainCard">
     <form id="ritualForm">
-        <div class="step" id="step1">
+        <div class="step active" id="step1">
             <h2>基本資料</h2>
             <div class="form-group"><label>姓名</label><input type="text" name="userName" required></div>
-            <div class="form-group"><label>年齡</label><input type="number" name="userAge"></div>
+            <div class="form-group"><label>年齡</label><input type="number" name="userAge" required></div>
             <div class="form-group"><label>Email</label><input type="email" name="userEmail" required></div>
-            <div class="form-group"><label>職業</label><input type="text" name="userJob"></div>
+            <div class="form-group"><label>職業</label><input type="text" name="userJob" required></div>
             <div class="form-group">
                 <label>最高學歷</label>
-                <select name="userEdu">
+                <select name="userEdu" required>
+                    <option value="">請選擇</option>
                     <option>高中職</option><option>大學</option><option>碩士</option><option>博士</option><option>其他</option>
                 </select>
             </div>
-            <div class="btn-group"><button type="button" class="btn-next" onclick="go(2)">下一步</button></div>
+            <div class="btn-group"><button type="button" class="btn-next" onclick="validateAndNext(2)">下一步</button></div>
         </div>
 
         <div class="step" id="step2">
             <h2>日常物件</h2>
-            <div class="form-group"><label>溫柔語氣物件</label><input type="text" name="gentleItem"></div>
-            <div class="form-group"><label>選擇原因</label><textarea name="gentleReason"></textarea></div>
-            <div class="form-group"><label>尖銳語氣物件</label><input type="text" name="sharpItem"></div>
-            <div class="form-group"><label>選擇原因</label><textarea name="sharpReason"></textarea></div>
             <div class="form-group">
-                <label>照片上傳</label>
-                <input type="file" accept="image/*" onchange="preview(this, 'p1', 'i1')">
-                <img id="p1" class="preview-img">
-                <input type="hidden" name="img1" id="i1">
+                <label>溫柔語氣物件名稱</label>
+                <input type="text" name="gentleItem" required>
+            </div>
+            <div class="form-group">
+                <label>選擇原因</label>
+                <textarea name="gentleReason" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>溫柔物件照片</label>
+                <input type="file" accept="image/*" required onchange="preview(this, 'pGentle', 'iGentle')">
+                <img id="pGentle" class="preview-img">
+                <input type="hidden" name="imgGentle" id="iGentle" required>
+            </div>
+            <hr style="border: 0.5px solid rgba(0,0,0,0.05); margin: 20px 0;">
+            <div class="form-group">
+                <label>尖銳語氣物件名稱</label>
+                <input type="text" name="sharpItem" required>
+            </div>
+            <div class="form-group">
+                <label>選擇原因</label>
+                <textarea name="sharpReason" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>尖銳物件照片</label>
+                <input type="file" accept="image/*" required onchange="preview(this, 'pSharp', 'iSharp')">
+                <img id="pSharp" class="preview-img">
+                <input type="hidden" name="imgSharp" id="iSharp" required>
             </div>
             <div class="btn-group">
                 <button type="button" class="btn-prev" onclick="go(1)">回上頁</button>
-                <button type="button" class="btn-next" onclick="go(3)">下一步</button>
+                <button type="button" class="btn-next" onclick="validateAndNext(3)">下一步</button>
             </div>
         </div>
 
         <div class="step" id="step3">
             <h2>告別物件</h2>
-            <div class="form-group"><label>物件名稱</label><input type="text" name="farewellItem"></div>
-            <div class="form-group"><label>特徵/功能/時長</label><textarea name="itemDetail"></textarea></div>
-            <div class="form-group"><label>情感連結/猶豫原因</label><textarea name="memory"></textarea></div>
+            <div class="form-group"><label>物件名稱</label><input type="text" name="farewellItem" required></div>
+            <div class="form-group"><label>基本功能與外觀</label><textarea name="itemDetail" required></textarea></div>
+            <div class="form-group"><label>使用時長（特徵描述）</label><input type="text" name="duration" required></div>
+            <div class="form-group"><label>記憶或情感連結</label><textarea name="memory" required></textarea></div>
+            <div class="form-group"><label>猶豫告別的原因</label><textarea name="hesitate" required></textarea></div>
             <div class="form-group">
-                <label>相對位置照片</label>
-                <input type="file" accept="image/*" onchange="preview(this, 'p2', 'i2')">
-                <img id="p2" class="preview-img">
-                <input type="hidden" name="img2" id="i2">
+                <label>相對位置照片 (告別物件與兩物件)</label>
+                <input type="file" accept="image/*" required onchange="preview(this, 'pFarewell', 'iFarewell')">
+                <img id="pFarewell" class="preview-img">
+                <input type="hidden" name="imgFarewell" id="iFarewell" required>
             </div>
             <div class="btn-group">
                 <button type="button" class="btn-prev" onclick="go(2)">回上頁</button>
-                <button type="button" class="btn-next" onclick="submitData()">完成儀式</button>
+                <button type="button" class="btn-next" onclick="finalSubmit()">完成</button>
             </div>
         </div>
     </form>
-
-    <div id="loading">正在傳送紀錄...</div>
+    <div id="loading">✨ 正在珍藏您的紀錄，請稍候...</div>
 </div>
 
 <script>
-    // 這裡請換成你部署後的網址（必須是 /exec 結尾）
+    // 這裡替換成你的 Google Script 網址
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby-你的ID/exec"; 
 
     function go(n) {
-        document.querySelectorAll('.step').forEach(s => s.style.display = 'none');
-        document.getElementById('step' + n).style.display = 'block';
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById('step' + n).classList.add('active');
+        window.scrollTo(0,0);
+    }
+
+    function validateAndNext(n) {
+        const currentStep = document.querySelector('.step.active');
+        const inputs = currentStep.querySelectorAll('input, select, textarea');
+        let valid = true;
+        inputs.forEach(input => {
+            if (!input.checkValidity()) {
+                input.reportValidity();
+                valid = false;
+            }
+        });
+        if (valid) go(n);
     }
 
     function preview(input, imgId, hiddenId) {
         const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById(imgId).src = e.target.result;
-            document.getElementById(imgId).style.display = 'block';
-            document.getElementById(hiddenId).value = e.target.result;
-        };
-        reader.readAsDataURL(file);
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById(imgId).src = e.target.result;
+                document.getElementById(imgId).style.display = 'block';
+                document.getElementById(hiddenId).value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
     }
 
-    async function submitData() {
+    async function finalSubmit() {
         const form = document.getElementById('ritualForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
         const data = {};
         new FormData(form).forEach((v, k) => data[k] = v);
 
@@ -156,14 +210,13 @@
                 mode: 'no-cors',
                 body: JSON.stringify(data)
             });
-            document.getElementById('mainCard').innerHTML = "<h2>儀式完成</h2><p style='text-align:center'>您的紀錄已成功收藏。</p>";
+            document.getElementById('mainCard').innerHTML = "<h2>儀式完成</h2><p style='text-align:center; color:#666;'>這段記憶已溫柔存檔。<br>祝您有美好的一天。</p>";
         } catch (e) {
-            alert("錯誤：" + e);
+            alert("提交發生錯誤：" + e);
             document.getElementById('ritualForm').style.display = 'block';
             document.getElementById('loading').style.display = 'none';
         }
     }
 </script>
-
 </body>
 </html>
