@@ -147,8 +147,6 @@
 </div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxTV38mzgifECq2TD73lelFuwLCc37ZLgHIoQz61YDPPjnxxBTBHHvZEjhAx1p2ZIxoKw/exec"; 
-
     function go(n) {
         document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + n).classList.add('active');
@@ -182,19 +180,24 @@
         document.getElementById('loading').style.display = 'block';
 
         try {
-            await fetch(WEB_APP_URL, {
+            // 部署在 Render 時，直接打相對路徑 /api/submit
+            const response = await fetch('/api/submit', {
                 method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-            
-            document.getElementById('mainCard').innerHTML = `
-                <div style="text-align:center; padding: 40px 0;">
-                    <h2>紀錄已完成</h2>
-                    <p style="color: #666;">您的告別儀式資料已成功送出。</p>
-                </div>
-            `;
+
+            if (response.ok) {
+                document.getElementById('mainCard').innerHTML = `
+                    <div style="text-align:center; padding: 40px 0;">
+                        <h2 style="font-size: 50px;">✨</h2>
+                        <h2>紀錄已完成</h2>
+                        <p style="color: #666;">您的告別儀式資料已成功珍藏。</p>
+                    </div>
+                `;
+            } else {
+                throw new Error('Submit failed');
+            }
         } catch (e) {
             alert("提交失敗，請檢查網路。");
             document.getElementById('ritualForm').style.display = 'block';
