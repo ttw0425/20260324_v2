@@ -79,7 +79,7 @@ app.get('/admin-print-secret', async (req, res) => {
         </style>
       </head>
       <body>
-        <h2 style="text-align:center;">✨ 告別清單 (喵喵機專用)</h2>
+        <h2 style="text-align:center;">✨ 告別清單</h2>
     `;
 
     result.rows.forEach(row => {
